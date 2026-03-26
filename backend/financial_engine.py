@@ -49,7 +49,7 @@ def calc_fire_corpus(monthly_expense: float, inflation: float = None) -> float:
     Returns:
         FIRE corpus target in ₹
     """
-    inflation = inflation or KNOWLEDGE_BASE["inflation"]["general_cpi"]
+    inflation = KNOWLEDGE_BASE["inflation"]["general_cpi"] if inflation is None else inflation
     annual_expense = monthly_expense * 12
     multiplier = KNOWLEDGE_BASE["rules_of_thumb"]["fire_corpus_multiplier"]
     # Inflate expenses by 1 year to account for planning lag
