@@ -26,7 +26,7 @@ cd Finmate
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
 ---
@@ -90,7 +90,7 @@ Then create Pull Request on GitHub.
 
 ## 🧠 Notes
 
-* Frontend runs on: http://localhost:3000
+* Frontend runs on: http://localhost:5173
 * Backend runs on: http://localhost:5000
 
 ---
