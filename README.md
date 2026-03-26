@@ -5,7 +5,7 @@
 ```
 project/
   frontend/   # React app
-  backend/    # Node.js / Django backend
+  backend/    # Fastapi backend
 ```
 
 ---
