@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import google.generativeai as genai
+from knowledge_base import KNOWLEDGE_BASE
 
 from financial_engine import (
     calc_sip,
@@ -328,7 +329,6 @@ def goal_cost(current_cost: float, years_away: int, goal_type: str = "retirement
     Quick endpoint to calculate future cost of a goal.
     Example: /goal-cost?current_cost=2000000&years_away=10&goal_type=child_education
     """
-    from knowledge_base import KNOWLEDGE_BASE
     inflation = KNOWLEDGE_BASE["goal_inflation_rates"].get(goal_type, 0.06)
     future_cost = calc_goal_future_cost(current_cost, years_away, inflation)
     return {
