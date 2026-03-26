@@ -64,7 +64,7 @@ Name/Reference     : {user.get('name', 'the user')}
 Age                : {user.get('age')} years
 City               : {user.get('city', 'India')} ({user.get('city_tier', 'metro')})
 Dependants         : {user.get('dependants', 0)}
-Tax regime         : {user.get('tax_regime', 'new').upper()} regime
+Tax regime         : {(user.get('tax_regime') or 'new').upper()} regime
 
 Monthly income     : {inr(user.get('monthly_income', 0))} (take-home)
 Monthly expenses   : {inr(user.get('monthly_expenses', 0))}
@@ -76,7 +76,7 @@ Outstanding debt   : {inr(user.get('outstanding_debt', 0))}
 Existing term cover: {inr(user.get('term_insurance_cover', 0))}
 Existing health    : {inr(user.get('health_insurance_cover', 0))}
 
-Life goals         : {', '.join(user.get('goals', ['retirement']))}
+Life goals         : {', '.join(user.get('goals') or ['retirement'])}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PERSONA: {persona.get('type', 'Balanced Builder').upper()}
@@ -107,8 +107,8 @@ When Nifty P/E > 24, tilt debt allocation up. When P/E < 18, advocate more equit
 PRE-CALCULATED METRICS (use these exact numbers)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FIRE corpus target : {inr(fire.get('fire_corpus_target', 0))}
-FIRE age           : {fire.get('fire_age', 'Not yet achievable')}
-Years to FIRE      : {fire.get('years_to_fire', 'N/A')}
+FIRE age           : {fire.get('fire_age') or 'Not yet achievable'}
+Years to FIRE      : {fire.get('years_to_fire') or 'N/A'}
 
 Emergency fund     : Need {inr(emergency.get('target', 0))} | Have {inr(emergency.get('current', 0))} | Shortfall: {inr(emergency.get('shortfall', 0))}
 Emergency coverage : {emergency.get('months_covered', 0)} months (target: 6 months)
