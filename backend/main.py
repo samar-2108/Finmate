@@ -133,7 +133,10 @@ class ChatRequest(BaseModel):
         for i, (answer, valid_set) in enumerate(zip(v, VALID_ANSWERS)):
             if answer not in valid_set:
                 print(f"[warn] Invalid Q{i+1} answer received: '{answer}'")
-                raise ValueError(f"Invalid answer for question {i+1}.")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid quiz answer for question {i+1}"
+                )
         return v
 
 
