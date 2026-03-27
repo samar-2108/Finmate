@@ -127,7 +127,6 @@ class ChatRequest(BaseModel):
     experience_spend_pct: Optional[int] = Field(20, ge=0, le=100)
     message: str = Field(..., min_length=1, max_length=2000)
     conversation_history: Optional[list[dict]] = []
-
     @field_validator("quiz_answers")
     @classmethod
     def validate_quiz_keys(cls, v):
