@@ -1,19 +1,26 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-export async function sendChat(userProfile, quizAnswers, message, history = []) {
+export async function sendChat(
+  userProfile,
+  quizAnswers,
+  message,
+  history = [],
+  experienceSpendPct = 20
+) {
   const res = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user: userProfile,
       quiz_answers: quizAnswers,
+      experience_spend_pct: experienceSpendPct,
       message,
       conversation_history: history,
     }),
   });
 
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Request failed");
   }
   return res.json(); // { reply, persona, calculations, market }
