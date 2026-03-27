@@ -290,8 +290,14 @@ async def chat(request: ChatRequest):
     )
 
     # Step 5: Build conversation messages for Gemini
+    # Choose model dynamically
+    model_name = "gemini-1.5-flash"
+
+    # Use Pro for longer/complex queries
+    if len(request.message) > 200:
+        model_name = "gemini-1.5-pro"
     gemini_model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
+        model_name=model_name,
         system_instruction=system,
     )
 
@@ -321,9 +327,11 @@ async def chat(request: ChatRequest):
     except Exception as e:
         error_str = str(e).lower()
         if "quota" in error_str or "rate" in error_str or "429" in error_str:
-            raise HTTPException(
-                status_code=429,
-                detail="API rate limit reached. Please wait a moment and try again."
+            return ChatResponse(
+            reply="I'm a bit busy right now 😅 Try again in a few seconds.",
+            persona=persona,
+            calculations=CalculationsResponse(**calculations),
+            market=market,
             )
         elif "safety" in error_str or "blocked" in error_str:
             raise HTTPException(
