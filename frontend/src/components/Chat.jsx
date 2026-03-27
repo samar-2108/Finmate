@@ -3,7 +3,7 @@ import { useState } from "react";
 import { sendChat } from "../api";
 
 export default function Chat({ userProfile, quizAnswers }) {
-  const [messages, setMessages] = useState([]);   // {role, content}
+  const [messages, setMessages] = useState([]);  
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
