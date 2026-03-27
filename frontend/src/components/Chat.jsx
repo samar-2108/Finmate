@@ -6,7 +6,6 @@ export default function Chat({ userProfile, quizAnswers }) {
   const [messages, setMessages] = useState([]);   // {role, content}
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [persona, setPersona] = useState(null);
 
   async function handleSend() {
     if (!input.trim()) return;
@@ -27,8 +26,7 @@ export default function Chat({ userProfile, quizAnswers }) {
       const data = await sendChat(userProfile, quizAnswers, input, geminiHistory);
 
       setMessages([...updatedHistory, { role: "assistant", content: data.reply }]);
-      setPersona(data.persona);
-    } catch (err) {
+    } catch {
       setMessages([...updatedHistory, {
         role: "assistant",
         content: "Something went wrong. Please try again.",
