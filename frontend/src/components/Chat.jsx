@@ -16,22 +16,53 @@ function pct(v) {
   return `${parseFloat(v).toFixed(1)}%`;
 }
 
-// Very simple markdown → HTML (safe: no exec, no innerHTML injection of user content)
+// Simple markdown → HTML renderer
 function renderMarkdown(text) {
   if (!text) return "";
-  let t = text
+  // Split into lines and process
+  const lines = text.split("\n");
+  let html = "";
+  let inList = false;
+
+  for (const line of lines) {
+    // Headers
+    if (line.startsWith("### ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h3>${line.slice(4)}</h3>`;
+    } else if (line.startsWith("## ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h2>${line.slice(3)}</h2>`;
+    } else if (line.startsWith("# ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h1>${line.slice(2)}</h1>`;
+    // List items
+    } else if (/^[-•*] /.test(line)) {
+      if (!inList) { html += "<ul>"; inList = true; }
+      html += `<li>${applyInline(line.slice(2))}</li>`;
+    // Horizontal rule
+    } else if (/^---+$/.test(line.trim())) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += "<hr>";
+    // Empty line = paragraph break
+    } else if (line.trim() === "") {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += "<br>";
+    // Regular paragraph
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<p>${applyInline(line)}</p>`;
+    }
+  }
+
+  if (inList) html += "</ul>";
+  return html;
+}
+
+function applyInline(text) {
+  return text
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    .replace(/^[-•*] (.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/gs, (m) => `<ul>${m}</ul>`)
-    .replace(/^---+$/gm, "<hr>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br>");
-  return `<p>${t}</p>`;
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
 }
 
 // ─── Persona colours ───────────────────────────────────────────────────────────
@@ -87,15 +118,39 @@ function MessageBubble({ msg }) {
   );
 }
 
+// ─── Initial Loading Placeholder ──────────────────────────────────────────────
+function GreetingLoader() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "20px", padding: "40px" }}>
+      <div style={{ width: "56px", height: "56px", background: "linear-gradient(135deg, #00D68F, #4D9EFF)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem", boxShadow: "0 0 32px rgba(0,214,143,0.3)" }}>₹</div>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ color: "#DDE6F5", fontSize: "1rem", fontWeight: 600, marginBottom: "8px" }}>Analysing your financial profile…</p>
+        <p style={{ color: "#5A7096", fontSize: "0.85rem" }}>Crunching your numbers and preparing a personalised snapshot</p>
+      </div>
+      <div style={{ display: "flex", gap: "8px" }}>
+        {[0, 0.2, 0.4].map((d, i) => (
+          <div key={i} style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#00D68F", animation: `pulse-dot 1.2s ${d}s infinite` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Chat Component ───────────────────────────────────────────────────────
 export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
+  // UI messages (what the user sees in the chat)
   const [messages, setMessages]     = useState([]);
+  // ✅ FIX: Separate API history that correctly tracks both sides of every exchange.
+  //         This prevents the "history starts with model" Gemini error.
+  const [apiHistory, setApiHistory] = useState([]);
   const [input, setInput]           = useState("");
   const [isLoading, setIsLoading]   = useState(false);
   const [persona, setPersona]       = useState(null);
   const [calculations, setCalcs]    = useState(null);
   const [market, setMarket]         = useState(null);
   const [sidebarOpen, setSidebar]   = useState(true);
+  // ✅ FIX: Track if the error is network-level vs quota/content
+  const [lastError, setLastError]   = useState(null);
 
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
@@ -104,17 +159,38 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
   useEffect(() => {
     async function greet() {
       setIsLoading(true);
+      setLastError(null);
+
+      // This is the internal prompt we send to seed the conversation.
+      // It is stored in apiHistory but NOT shown in the UI messages list.
+      const greetingPrompt = `Hello! I'm ready. Please introduce yourself as FinMate, give ${userProfile?.name || "the user"} a quick personalised financial snapshot based on their profile, and ask what they'd like to work on today. Be warm, specific, and use the ₹ numbers you have.`;
+
       try {
-        const greeting = `Hello! I'm ready. Please introduce yourself as FinMate, give ${userProfile?.name || "me"} a quick personalised financial snapshot based on their profile, and ask what they'd like to work on today. Be warm, specific, and use the ₹ numbers you have.`;
-        const res = await sendChat(userProfile, quizAnswers, greeting, [], experiencePct);
+        // First call: no history yet, just the greeting prompt
+        const res = await sendChat(userProfile, quizAnswers, greetingPrompt, [], experiencePct);
         const now = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+        // Show only the model's reply in the UI
         setMessages([{ role: "model", content: res.reply, time: now }]);
+
+        // ✅ CRITICAL FIX: Store BOTH the user prompt AND the model reply in
+        //    apiHistory so future calls always start with a "user" turn.
+        setApiHistory([
+          { role: "user",  content: greetingPrompt },
+          { role: "model", content: res.reply },
+        ]);
+
         if (res.persona)       setPersona(res.persona);
         if (res.calculations)  setCalcs(res.calculations);
         if (res.market)        setMarket(res.market);
-      } catch {
+      } catch (err) {
         const now = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-        setMessages([{ role: "model", content: `Hi ${userProfile?.name || "there"}! I'm FinMate — your AI financial advisor. I'm having a little trouble connecting right now. Please check that the backend server is running at http://localhost:8000 and try again. 🙏`, time: now }]);
+        const isQuota = err.message?.includes("429");
+        const errorMsg = isQuota
+          ? `Hi ${userProfile?.name || "there"}! FinMate is a bit busy right now. Please wait a moment and refresh. 🙏`
+          : `Hi ${userProfile?.name || "there"}! I'm having trouble connecting. Please make sure the backend is running at http://localhost:8000 and try again. 🙏`;
+        setMessages([{ role: "model", content: errorMsg, time: now }]);
+        setLastError(err.message);
       } finally {
         setIsLoading(false);
       }
@@ -131,20 +207,42 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
   async function handleSend() {
     const text = input.trim();
     if (!text || isLoading) return;
+
     const now = () => new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
     const userMsg = { role: "user", content: text, time: now() };
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
+
+    // Add user message to UI immediately
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    setLastError(null);
+
     try {
-      const res = await sendChat(userProfile, quizAnswers, text, history, experiencePct);
-      setMessages((prev) => [...prev, { role: "model", content: res.reply, time: now() }]);
+      // ✅ FIX: Pass apiHistory (which correctly starts with "user") — not the
+      //         UI messages array which starts with a "model" greeting message.
+      const res = await sendChat(userProfile, quizAnswers, text, apiHistory, experiencePct);
+
+      const botMsg = { role: "model", content: res.reply, time: now() };
+      setMessages((prev) => [...prev, botMsg]);
+
+      // ✅ FIX: Append both sides to apiHistory after each exchange.
+      setApiHistory((prev) => [
+        ...prev,
+        { role: "user",  content: text },
+        { role: "model", content: res.reply },
+      ]);
+
       if (res.persona)      setPersona(res.persona);
       if (res.calculations) setCalcs(res.calculations);
       if (res.market)       setMarket(res.market);
-    } catch {
-      setMessages((prev) => [...prev, { role: "model", content: "Sorry, I ran into an issue. Please try again!", time: now() }]);
+    } catch (err) {
+      const isQuota = err.message?.includes("429");
+      const errContent = isQuota
+        ? "FinMate is a bit busy — please wait a moment and try again."
+        : "Sorry, I ran into an issue connecting to the server. Please try again!";
+
+      setMessages((prev) => [...prev, { role: "model", content: errContent, time: now() }]);
+      setLastError(err.message);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -221,8 +319,12 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
 
-            {/* Persona badge */}
-            {persona && pc && (
+            {/* ✅ FIX: Show a proper loading screen while the initial greeting is loading
+                instead of a blank screen. */}
+            {messages.length === 0 && isLoading && <GreetingLoader />}
+
+            {/* Persona badge — only show once messages have loaded */}
+            {messages.length > 0 && persona && pc && (
               <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
                 <div style={{ background: pc.bg, border: `1px solid ${pc.border}`, borderRadius: "20px", padding: "6px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span>{pc.label}</span>
@@ -233,15 +335,17 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
             )}
 
             {messages.map((m, i) => <MessageBubble key={i} msg={m} />)}
-            {isLoading && (
+
+            {/* Typing indicator — only show when there are already messages */}
+            {isLoading && messages.length > 0 && (
               <div style={{ display: "flex", marginBottom: "16px" }}>
                 <div style={{ width: "30px", height: "30px", borderRadius: "8px", background: "linear-gradient(135deg, #00D68F, #4D9EFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", flexShrink: 0, marginRight: "10px" }}>₹</div>
                 <div style={{ background: "#0C1526", border: "1px solid #1A2B45", borderRadius: "4px 18px 18px 18px" }}><Typing /></div>
               </div>
             )}
 
-            {/* Suggestions (show only if few messages) */}
-            {messages.length <= 1 && !isLoading && (
+            {/* Suggestions (show only after first greeting and before any user message) */}
+            {messages.length === 1 && !isLoading && (
               <div style={{ marginTop: "16px" }}>
                 <p style={{ color: "#3A506B", fontSize: "0.75rem", textAlign: "center", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Or try asking</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
@@ -256,6 +360,14 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
                 </div>
               </div>
             )}
+
+            {/* Network error banner */}
+            {lastError && !isLoading && (
+              <div style={{ margin: "8px 0", padding: "8px 14px", background: "rgba(255,92,92,0.08)", border: "1px solid rgba(255,92,92,0.25)", borderRadius: "8px", color: "#FF5C5C", fontSize: "0.78rem", textAlign: "center" }}>
+                ⚠️ Connection issue — check that the backend is running on port 8000
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
 
@@ -310,6 +422,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
                 </div>
               </div>
             ) : (
+              /* Skeleton loader while persona is being fetched */
               <div style={{ background: "#0C1526", border: "1px solid #1A2B45", borderRadius: "14px", padding: "20px", marginBottom: "16px", textAlign: "center" }}>
                 <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "3px solid #00D68F", borderTopColor: "transparent", margin: "0 auto 10px", animation: "spin 0.8s linear infinite" }} />
                 <p style={{ color: "#5A7096", fontSize: "0.8rem" }}>Detecting your persona…</p>
@@ -317,7 +430,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
             )}
 
             {/* Key Metrics */}
-            {calculations && (
+            {calculations ? (
               <>
                 <p style={{ color: "#3A506B", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>Financial Snapshot</p>
                 <div style={{ display: "grid", gap: "8px", marginBottom: "16px" }}>
@@ -405,6 +518,16 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
                   </div>
                 )}
               </>
+            ) : (
+              /* Skeleton loader for metrics while calculations load */
+              <div>
+                {[1, 2, 3].map(i => (
+                  <div key={i} style={{ background: "#0C1526", border: "1px solid #1A2B45", borderRadius: "10px", padding: "14px", marginBottom: "8px" }} className="loading-shimmer">
+                    <div style={{ height: "10px", width: "60%", background: "#1A2B45", borderRadius: "4px", marginBottom: "8px" }} />
+                    <div style={{ height: "18px", width: "40%", background: "#1A2B45", borderRadius: "4px" }} />
+                  </div>
+                ))}
+              </div>
             )}
 
             {/* Goals */}

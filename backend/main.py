@@ -42,6 +42,11 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
+# ── Read frontend URL from environment (avoids hardcoded placeholder) ─────────
+# Set FRONTEND_URL in your .env for production deployments.
+# Example: FRONTEND_URL=https://your-app.vercel.app
+FRONTEND_URL = os.getenv("FRONTEND_URL", "")
+
 # ── FastAPI app setup ─────────────────────────────────────────
 app = FastAPI(
     title="FinMentor API",
@@ -49,13 +54,18 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Build the allowed origins list — always include local dev servers,
+# and add the production URL only if it has been configured.
+_allowed_origins = [
+    "http://localhost:5173",   # Vite dev server
+    "http://localhost:3000",   # CRA dev server (just in case)
+]
+if FRONTEND_URL:
+    _allowed_origins.append(FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",        # Vite dev server
-        "http://localhost:3000",        # CRA dev server
-        "https://your-app.vercel.app",  # ← Replace with your Vercel URL
-    ],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -116,7 +126,8 @@ class ChatRequest(BaseModel):
     )
     experience_spend_pct: Optional[int] = Field(20, ge=0, le=100)
     message: str = Field(..., min_length=1, max_length=2000)
-    conversation_history: Optional[list[dict]] = []   # Previous turns
+    conversation_history: Optional[list[dict]] = []
+
     @field_validator("quiz_answers")
     @classmethod
     def validate_quiz_keys(cls, v):
@@ -151,15 +162,18 @@ def run_calculations(user: UserProfile, nifty_pe: float, market: dict) -> dict:
     Called once per chat request so numbers are always up-to-date.
     """
     savings = calc_savings_rate(user.monthly_income, user.monthly_expenses)
-    raw_inflation = market.get("cpi_inflation", 6.0)  
+
+    # Read inflation once and convert once (avoids the inconsistent-default bug)
+    raw_inflation = market.get("cpi_inflation", 6.0)
     inflation = raw_inflation / 100 if raw_inflation > 1 else raw_inflation
+
     fire = calc_fire_date(
         current_age=user.age,
         monthly_income=user.monthly_income,
         monthly_expense=user.monthly_expenses,
         current_corpus=user.existing_investments,
-        annual_return=0.12,  
-        inflation = inflation,
+        annual_return=0.12,
+        inflation=inflation,
     )
 
     emergency = calc_emergency_shortfall(
@@ -274,13 +288,15 @@ async def chat(request: ChatRequest):
     )
 
     # Step 5: Build conversation messages for Gemini
-    # Include history for multi-turn conversation support
     gemini_model = genai.GenerativeModel(
         model_name="gemini-2.0-flash",
         system_instruction=system,
     )
 
-    # Build message history for multi-turn
+    # Build message history for multi-turn.
+    # The frontend sends apiHistory which always starts with a "user" turn
+    # (the internal greeting prompt), so Gemini never receives history that
+    # begins with a "model" message.
     history = []
     for turn in request.conversation_history:
         role = turn.get("role", "user")
@@ -297,12 +313,26 @@ async def chat(request: ChatRequest):
             response = gemini_model.generate_content(request.message)
 
         reply = response.text
+        if not reply:
+            reply = "I wasn't able to generate a response to that. Could you rephrase your financial question?"
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"AI generation failed: {str(e)}"
-        )
+        error_str = str(e).lower()
+        if "quota" in error_str or "rate" in error_str or "429" in error_str:
+            raise HTTPException(
+                status_code=429,
+                detail="API rate limit reached. Please wait a moment and try again."
+            )
+        elif "safety" in error_str or "blocked" in error_str:
+            raise HTTPException(
+                status_code=400,
+                detail="Request was blocked. Please rephrase your financial question."
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"AI generation failed: {str(e)}"
+            )
 
     return ChatResponse(
         reply=reply,
