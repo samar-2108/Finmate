@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createContext, useContext, useState, useEffect } from "react";
-
+/** @type {React.Context<any>} */
 const AuthContext = createContext(null);
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -28,16 +28,11 @@ export function AuthProvider({ children }) {
 
   // ── Restore session whenever token changes ──────────────────
   useEffect(() => {
-    if (!token) {
-      // No token — nothing to fetch, not loading.
-      setLoading(false);
-      return;
-    }
+    if (!token) return;
 
     // token changed to a new value mid-session (i.e. login() was just called).
     // We need setLoading(true) here only for that case — on the initial mount
     // the lazy initializer above already set loading=true so no extra render fires.
-    setLoading(true);
 
     fetch(`${BASE_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -70,6 +65,7 @@ export function AuthProvider({ children }) {
   function login(tokenResp) {
     const { access_token } = tokenResp;
     localStorage.setItem("fm_token", access_token);
+    setLoading(true);
     setToken(access_token);
   }
 
@@ -98,6 +94,7 @@ export function AuthProvider({ children }) {
     setQuizAnswers(null);
     setPersona(null);
     setChatHistory([]);
+    setLoading(false);
   }
 
   return (
@@ -120,7 +117,7 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
