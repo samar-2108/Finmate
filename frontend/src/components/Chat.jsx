@@ -167,7 +167,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
 
       try {
         // First call: no history yet, just the greeting prompt
-        const res = await sendChat(userProfile, quizAnswers, greetingPrompt, [], experiencePct);
+        const res = await sendChat(greetingPrompt, userProfile, quizAnswers, [], experiencePct);
         const now = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
         // Show only the model's reply in the UI
@@ -220,7 +220,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
     try {
       // ✅ FIX: Pass apiHistory (which correctly starts with "user") — not the
       //         UI messages array which starts with a "model" greeting message.
-      const res = await sendChat(userProfile, quizAnswers, text, apiHistory, experiencePct);
+      const res = await sendChat(text, userProfile, quizAnswers, apiHistory, experiencePct);
 
       const botMsg = { role: "model", content: res.reply, time: now() };
       setMessages((prev) => [...prev, botMsg]);

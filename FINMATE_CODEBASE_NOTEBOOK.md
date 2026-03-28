@@ -359,27 +359,6 @@ Imports Google Fonts (DM Sans, DM Serif Display, JetBrains Mono). Defines CSS cu
 
 ## 6. Bug Report
 
-### BUG #1 — CRITICAL: Wrong Gemini SDK API
-**File:** `main.py`, `requirements.txt`
-
-**Problem:** `main.py` uses `from google import genai` and `genai.Client(api_key=...)` — this is the new `google-genai` package. But `requirements.txt` lists `google-generativeai>=0.8.0` which is the OLD package with `genai.configure()` API. These are two completely different PyPI packages.
-
-**Fix:**
-```
-# requirements.txt — change this line:
-google-generativeai>=0.8.0
-# To:
-google-genai>=0.8.0
-```
-Or alternatively, if staying on old SDK:
-```python
-# main.py
-import google.generativeai as genai
-genai.configure(api_key=GEMINI_API_KEY)
-# ... then use genai.GenerativeModel(...) instead of client.models.generate_content
-```
-
----
 
 ### BUG #2 — HIGH: Wrong `sendChat()` call signature in `Chat.jsx`
 **File:** `Chat.jsx` (lines ~110, ~155), `api.js`
@@ -511,24 +490,7 @@ fire_corpus = calc_fire_corpus(user_dict["monthly_expenses"], inflation=inflatio
 
 **Fix:** Either remove `appendChatTurn` from AuthContext (since Chat.jsx manages its own state) or call it after every successful chat exchange in `Chat.jsx`.
 
----
 
-### BUG #9 — LOW: `@keyframes spin` injected on every re-render
-**File:** `App.jsx`
-
-**Problem:**
-```js
-if (typeof document !== "undefined") {
-  const style = document.createElement("style");
-  style.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";
-  document.head.appendChild(style);
-}
-```
-This code runs at module evaluation time (top level), not inside a `useEffect`. However since it's in the module body it runs once on first import. But this keyframe is already defined in `index.css`. Duplicate definitions aren't a bug per se, but it's unnecessary.
-
-**Fix:** Remove the injection from `App.jsx` entirely — the `@keyframes spin` is already in `index.css`.
-
----
 
 ## 7. Improvement Suggestions
 

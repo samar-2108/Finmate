@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { apiSaveProfile } from "../api";
+import { apiSaveProfile, apiGetMe } from "../api";
 
 const QUIZ_OPTIONS = {
   q1: [
@@ -83,8 +83,14 @@ export default function OnboardingForm({ userName, onComplete }) {
       };
       const quizAnswers = [q1, q2, q3];
       const result = await apiSaveProfile(financialData, quizAnswers, expPct);
-      // Fetch the full persona from result or pass minimal info
-      onComplete(financialData, quizAnswers, { type: result.persona_type });
+      const meData = await apiGetMe();
+      onComplete(
+        financialData,
+        quizAnswers,
+        meData.persona && Object.keys(meData.persona).length > 1
+          ? meData.persona
+          : { type: result.persona_type }
+      );
     } catch (err) {
       setError(err.message);
       setSaving(false);

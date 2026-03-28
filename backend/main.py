@@ -299,7 +299,7 @@ def run_calculations(user_dict: dict, nifty_pe: float, market: dict) -> dict:
         regime=user_dict.get("tax_regime", "new"),
     )
     allocation       = calc_asset_allocation(risk_profile="moderate", nifty_pe=nifty_pe)
-    fire_corpus      = calc_fire_corpus(user_dict["monthly_expenses"])
+    fire_corpus      = calc_fire_corpus(user_dict["monthly_expenses"], inflation=inflation)
     years_to_60      = max(1, 60 - user_dict["age"])
     sip_for_retirement = calc_sip(target=fire_corpus, years=years_to_60, annual_rate=0.12)
 

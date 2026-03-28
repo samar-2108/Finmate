@@ -67,11 +67,17 @@ export async function apiSaveProfile(financialData, quizAnswers, experienceSpend
 }
 
 
-// ── Chat ──────────────────────────────────────────────────────
-export async function sendChat(message, overrideUser = null, overrideQuiz = null) {
-  const body = { message };
-  if (overrideUser)  body.user = overrideUser;
-  if (overrideQuiz)  body.quiz_answers = overrideQuiz;
+export async function sendChat(
+  message,
+  overrideUser = null,
+  overrideQuiz = null,
+  conversationHistory = [],
+  experienceSpendPct = 20
+) {
+  const body = { message, experience_spend_pct: experienceSpendPct };
+  if (overrideUser) body.user = overrideUser;
+  if (overrideQuiz) body.quiz_answers = overrideQuiz;
+  if (conversationHistory?.length > 0) body.conversation_history = conversationHistory;
 
   const res = await authFetch("/chat", {
     method: "POST",
@@ -79,7 +85,7 @@ export async function sendChat(message, overrideUser = null, overrideQuiz = null
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail || "Chat request failed");
-  return data;   // { reply, persona, calculations, market }
+  return data;
 }
 
 
