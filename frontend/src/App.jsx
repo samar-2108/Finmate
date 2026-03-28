@@ -9,7 +9,7 @@
 // AuthProvider wraps everything so auth state is global.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+// FIX: removed unused `useState` import — all state lives in AuthContext now.
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthPage from "./components/AuthPage";
 import Chat from "./components/Chat";

@@ -14,19 +14,31 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export function AuthProvider({ children }) {
   const [token, setToken]     = useState(() => localStorage.getItem("fm_token"));
-  const [user, setUser]       = useState(null);   // { user_id, name, email, has_profile }
-  const [profile, setProfile] = useState(null);   // saved financial profile
+  const [user, setUser]       = useState(null);
+  const [profile, setProfile] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState(null);
   const [persona, setPersona] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
-  const [loading, setLoading] = useState(true);   // true while restoring session
 
-  // ── Restore session on mount ────────────────────────────────
+  // FIX: initialize loading=true only when a token actually exists.
+  // This avoids the synchronous setLoading(true) call inside the effect
+  // (which the React linter flags as causing cascading renders).
+  // If there is no token we are definitively not loading — start false.
+  const [loading, setLoading] = useState(() => !!localStorage.getItem("fm_token"));
+
+  // ── Restore session whenever token changes ──────────────────
   useEffect(() => {
     if (!token) {
+      // No token — nothing to fetch, not loading.
       setLoading(false);
       return;
     }
+
+    // token changed to a new value mid-session (i.e. login() was just called).
+    // We need setLoading(true) here only for that case — on the initial mount
+    // the lazy initializer above already set loading=true so no extra render fires.
+    setLoading(true);
+
     fetch(`${BASE_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -46,7 +58,6 @@ export function AuthProvider({ children }) {
         }
       })
       .catch(() => {
-        // Token expired or invalid — clear it
         localStorage.removeItem("fm_token");
         setToken(null);
       })
@@ -54,11 +65,12 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   // ── Called after successful login or signup ─────────────────
+  // Only set the token — the effect above is the single source of
+  // truth for user state, fetched fresh from /auth/me.
   function login(tokenResp) {
-    const { access_token, ...userData } = tokenResp;
+    const { access_token } = tokenResp;
     localStorage.setItem("fm_token", access_token);
     setToken(access_token);
-    setUser(userData);
   }
 
   // ── Called after onboarding is complete ────────────────────
