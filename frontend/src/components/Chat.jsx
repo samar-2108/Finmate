@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { sendChat } from "../api";
-
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmtINR(n) {
   if (n === undefined || n === null || isNaN(n)) return "—";
@@ -248,7 +249,39 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
       inputRef.current?.focus();
     }
   }
+  async function downloadPDF() {
+  const elements = document.querySelectorAll(".chat-content");
+  const element = elements[elements.length - 1];
 
+  if (!element) return;
+
+  // 🟢 Save original styles
+  const originalBg = element.style.background;
+  const originalColor = element.style.color;
+
+  // 🟢 Force white theme for PDF
+  element.style.background = "#ffffff";
+  element.style.color = "#000000";
+
+  const canvas = await html2canvas(element, { scale: 2 });
+  const imgData = canvas.toDataURL("image/png");
+
+  const doc = new jsPDF();
+
+  const imgWidth = 190;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  doc.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+  doc.save("finmate.pdf");
+
+  // 🔴 Restore original styles (IMPORTANT)
+  element.style.background = originalBg;
+  element.style.color = originalColor;
+}
+  function handleLogout() {
+  localStorage.removeItem("fm_token");
+  window.location.href = "/login";
+}
   function handleKey(e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }
@@ -304,6 +337,35 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
           {userProfile?.name && (
             <span style={{ color: "#5A7096", fontSize: "0.82rem" }}>👤 {userProfile.name}</span>
           )}
+          <button
+  onClick={downloadPDF}
+  style={{
+    background: "#4D9EFF",
+    border: "none",
+    borderRadius: "7px",
+    padding: "5px 10px",
+    color: "white",
+    fontSize: "0.78rem",
+    cursor: "pointer"
+  }}
+>
+  PDF
+</button>
+                  {/* ✅ ADD THIS LOGOUT BUTTON */}
+          <button
+            onClick={handleLogout}
+            style={{
+              background: "#FF5C5C",
+              border: "none",
+              borderRadius: "7px",
+              padding: "5px 10px",
+              color: "white",
+              fontSize: "0.78rem",
+              cursor: "pointer"
+            }}
+          >
+            Logout
+          </button>
           <button onClick={() => setSidebar(s => !s)}
             style={{ background: sidebarOpen ? "rgba(0,214,143,0.1)" : "rgba(26,43,69,0.5)", border: `1px solid ${sidebarOpen ? "rgba(0,214,143,0.3)" : "#1A2B45"}`, borderRadius: "7px", padding: "5px 10px", color: sidebarOpen ? "#00D68F" : "#5A7096", fontSize: "0.78rem", cursor: "pointer" }}>
             {sidebarOpen ? "◀ Dashboard" : "▶ Dashboard"}
