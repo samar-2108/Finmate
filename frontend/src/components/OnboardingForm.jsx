@@ -251,6 +251,40 @@ export default function OnboardingForm({ userName, onComplete }) {
         {/* ── Step 4: Confirm + Save ── */}
         {step === 4 && (
           <div style={s.fields}>
+            <div style={s.fieldWrap}>
+              <label style={s.label}>Financial goals</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {[
+                  ["retirement", "🧘 Retirement"],
+                  ["child_education", "🎓 Child education"],
+                  ["home_purchase", "🏠 Home purchase"],
+                  ["travel", "✈️ Travel"],
+                  ["child_marriage", "💍 Child marriage"],
+                  ["car_purchase", "🚗 Car"],
+                ].map(([val, label]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() =>
+                      update(
+                        "goals",
+                        form.goals.includes(val)
+                          ? form.goals.filter((g) => g !== val)
+                          : [...form.goals, val]
+                      )
+                    }
+                    style={{
+                      ...s.quizOpt,
+                      padding: "8px 14px",
+                      ...(form.goals.includes(val) ? s.quizOptSelected : {}),
+                    }}
+                  >
+                    {form.goals.includes(val) && <span style={{ marginRight: 6 }}>✓</span>}
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div style={s.summaryGrid}>
               <SummaryItem label="Monthly income" value={`₹${Number(form.monthly_income).toLocaleString("en-IN")}`} />
               <SummaryItem label="Monthly expenses" value={`₹${Number(form.monthly_expenses).toLocaleString("en-IN")}`} />
