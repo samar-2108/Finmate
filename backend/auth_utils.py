@@ -1,12 +1,3 @@
-# auth_utils.py
-# ─────────────────────────────────────────────────────────────
-# JWT token creation + verification.
-# Password hashing with bcrypt via passlib.
-#
-# SECRET_KEY must be set in .env for production.
-# Generate a strong key with:
-#   python -c "import secrets; print(secrets.token_hex(32))"
-# ─────────────────────────────────────────────────────────────
 
 import os
 from datetime import datetime, timedelta, timezone
@@ -22,7 +13,7 @@ ACCESS_TOKEN_EXPIRE_DAYS = 7   # Users stay logged in for a week
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-# ── Password helpers ──────────────────────────────────────────
+#Password helpers
 def hash_password(plain: str) -> str:
     return pwd_context.hash(plain)
 
@@ -31,7 +22,7 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-# ── JWT helpers ───────────────────────────────────────────────
+#JWT helpers
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Creates a signed JWT.

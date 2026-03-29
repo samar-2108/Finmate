@@ -86,7 +86,7 @@ def detect_persona(
     q2 = quiz_answers[1] if len(quiz_answers) > 1 else ""
     q3 = quiz_answers[2] if len(quiz_answers) > 2 else ""
 
-    # ── Scoring system ─────────────────────────────────────────
+    #Scoring system
     scores = {
         "fire":    0,
         "yolo":    0,
@@ -139,7 +139,7 @@ def detect_persona(
     if outstanding_debt > monthly_income * 24:  # >2 years income in debt
         scores["debt"] += 3
 
-    # ── Pick the winning persona ────────────────────────────────
+    #Pick the winning persona
     winner = max(scores, key=scores.get)
     sorted_scores = sorted(scores.values(), reverse=True)
     if sorted_scores[0] - sorted_scores[1] <= 2:   # top two within 2 pts → balanced
@@ -246,9 +246,8 @@ def detect_persona(
     }
 
     persona = persona_map.get(winner, persona_map["wealth"])
-    # Return as plain dict for JSON serialisation
     result = asdict(persona)
-    result["score_breakdown"] = scores  # useful for debugging
+    result["score_breakdown"] = scores  
     return result
 
 
@@ -261,7 +260,6 @@ def _calc_risk_score(
     """
     base = 5
 
-    # Savings rate contribution
     if savings_rate >= 0.50:
         base += 2
     elif savings_rate >= 0.30:
@@ -269,7 +267,6 @@ def _calc_risk_score(
     elif savings_rate < 0.10:
         base -= 2
 
-    # Persona contribution
     persona_adjustment = {
         "fire": +1,
         "yolo": 0,
@@ -280,12 +277,11 @@ def _calc_risk_score(
     }
     base += persona_adjustment.get(persona_type, 0)
 
-    # Fear of market crash → reduce risk score
     if fear_answer == Q2_MARKET_CRASH:
         base -= 2
 
     return max(1, min(10, base))
-# ── Valid answer key sets (used for input validation in main.py) ──
+
 VALID_ANSWERS = [
     {Q1_INVEST_ALL, Q1_INVEST_HALF, Q1_PAY_DEBT, Q1_BUY_WANT, Q1_SAVE_FAMILY},
     {Q2_NOT_ENOUGH, Q2_MISSING_OUT, Q2_DEBT_TRAP, Q2_FAMILY_BURDEN, Q2_MARKET_CRASH},
