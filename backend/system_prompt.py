@@ -135,7 +135,7 @@ INDIAN FINANCE RULES (always follow these)
 
 3. BENCHMARKS:
    Emergency fund: 6 months expenses
-   Term insurance: 12× annual income
+   Term insurance: 12x annual income
    Health cover: ₹10L metro / ₹5L non-metro
    Savings rate target: ≥20% (≥40% for FIRE)
    Equity allocation: age-in-bonds rule (100 - age = equity %)
