@@ -256,7 +256,7 @@ export default function OnboardingForm({ userName, onComplete }) {
                   ["child_education", "🎓 Child education"],
                   ["home_purchase", "🏠 Home purchase"],
                   ["travel", "✈️ Travel"],
-                  ["child_marriage", "💍 Child marriage"],
+                  ["child_marriage", "💍 Children marriage"],
                   ["car_purchase", "🚗 Car"],
                 ].map(([val, label]) => (
                   <button
