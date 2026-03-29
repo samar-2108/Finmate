@@ -1,8 +1,4 @@
-# main.py  (backend/main.py)
-# ─────────────────────────────────────────────────────────────
 # FastAPI entry point — with user auth + new google-genai SDK.
-# Run with: uvicorn main:app --reload --port 8000
-# ─────────────────────────────────────────────────────────────
 
 import os
 from dotenv import load_dotenv
@@ -29,22 +25,18 @@ from market_data import get_market_snapshot
 from behaviour_profiler import detect_persona, VALID_ANSWERS
 from system_prompt import build_system_prompt
 
-# ── Bootstrap ─────────────────────────────────────────────────
 load_dotenv()
 
-# Create all DB tables on startup (no-op if they already exist)
 Base.metadata.create_all(bind=engine)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY not set in .env file")
 
-# New SDK: use Client, not genai.configure()
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "")
 
-# ── FastAPI app setup ─────────────────────────────────────────
 app = FastAPI(
     title="FinMentor API",
     description="AI-powered Indian personal finance advisor — with user accounts",
@@ -63,11 +55,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# OAuth2 scheme — reads "Authorization: Bearer <token>" header
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
-# ── Auth dependency ────────────────────────────────────────────
+#Auth dependency
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -92,7 +83,7 @@ def get_current_user(
     return user
 
 
-# ── Pydantic models ───────────────────────────────────────────
+#Pydantic models
 
 class SignupRequest(BaseModel):
     email: str
@@ -181,7 +172,7 @@ class ChatResponse(BaseModel):
     market: dict
 
 
-# ── Auth routes ────────────────────────────────────────────────
+#Auth routes
 
 @app.post("/auth/signup", response_model=TokenResponse)
 def signup(req: SignupRequest, db: Session = Depends(get_db)):
@@ -236,7 +227,7 @@ def get_me(current_user: User = Depends(get_current_user)):
     }
 
 
-# ── Profile save route ─────────────────────────────────────────
+#Profile save route
 
 @app.put("/profile/save")
 def save_profile(
@@ -265,7 +256,7 @@ def save_profile(
     return {"status": "saved", "persona_type": persona.get("type")}
 
 
-# ── Financial calculation helper ───────────────────────────────
+#Financial calculation helper
 
 def run_calculations(user_dict: dict, nifty_pe: float, market: dict) -> dict:
     raw_inflation = market.get("cpi_inflation", 6.0)
@@ -311,7 +302,7 @@ def run_calculations(user_dict: dict, nifty_pe: float, market: dict) -> dict:
     }
 
 
-# ── Chat route ─────────────────────────────────────────────────
+#Chat route
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(
@@ -431,7 +422,7 @@ async def chat(
     )
 
 
-# ── Utility routes ─────────────────────────────────────────────
+#Utility routes
 
 @app.get("/health")
 def health_check():

@@ -1,13 +1,7 @@
-# models.py
-# ─────────────────────────────────────────────────────────────
 # SQLAlchemy ORM models.
 # Two tables:
 #   users         — email + hashed password
 #   user_profiles — financial profile, quiz, persona (JSON)
-#
-# JSON columns store the full dicts so we don't need
-# dozens of columns for every financial field.
-# ─────────────────────────────────────────────────────────────
 
 from sqlalchemy import (
     Column, Integer, String, DateTime, Float,

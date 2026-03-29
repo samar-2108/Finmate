@@ -1,15 +1,9 @@
-# system_prompt.py
-# ─────────────────────────────────────────────────────────────
 # Assembles the complete system prompt from:
 #   - User's financial profile
 #   - Live market data
 #   - Detected persona
 #   - Pre-calculated financial metrics
 #   - Static knowledge base rules
-#
-# This is what the LLM actually reads. The quality of this
-# prompt is the single biggest factor in response quality.
-# ─────────────────────────────────────────────────────────────
 
 from knowledge_base import KNOWLEDGE_BASE
 

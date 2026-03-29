@@ -1,10 +1,8 @@
 # behaviour_profiler.py
-# ─────────────────────────────────────────────────────────────
 # This is the USP of the product.
 # Takes quiz answers + financial numbers → outputs a persona.
 # The persona changes how the AI talks to the user and what
 # it prioritises in the financial plan.
-#
 # Personas:
 #   1. FIRE Seeker        — wants to retire early, savings-focused
 #   2. YOLO Traveller     — experiences > savings, lifestyle-first
@@ -12,7 +10,6 @@
 #   4. Debt Slayer        — anxious about loans, wants to be debt-free
 #   5. Wealth Builder     — ambitious, wants to grow aggressively
 #   6. Balanced Builder   — middle-of-the-road, practical
-# ─────────────────────────────────────────────────────────────
 
 from dataclasses import dataclass, asdict
 from typing import Optional

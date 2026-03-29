@@ -1,15 +1,9 @@
-# market_data.py
-# ─────────────────────────────────────────────────────────────
 # Fetches live market data from free public APIs.
-# Every fetch has a hardcoded fallback so a failed API
-# never crashes the app — especially important during a demo.
-#
 # APIs used:
 #   1. exchangerate-api.com  → USD/INR (no key needed)
 #   2. Alpha Vantage         → Gold ETF price (free key)
 #   3. NSE India             → Nifty data (tricky headers needed)
 #   4. RBI / hardcoded       → Repo rate (changes ~6x/year)
-# ─────────────────────────────────────────────────────────────
 
 import os
 import httpx
@@ -20,8 +14,7 @@ load_dotenv()
 
 ALPHA_KEY = os.getenv("ALPHA_VANTAGE_KEY", "demo")
 
-# ── Fallback values (update monthly) ──────────────────────────
-# These are used when any API call fails.
+#Fallback values
 FALLBACKS = {
     "usd_inr": 83.5,
     "repo_rate": 6.50,       # RBI repo rate — update when RBI changes it
@@ -31,7 +24,6 @@ FALLBACKS = {
     "gold_price_per_10g": 72000,  # Approx — update before demo
     "fd_best_rate": 7.25,    # Best 1-year FD rate among major banks
 }
-
 
 async def fetch_usd_inr() -> float:
     """

@@ -1,14 +1,11 @@
-# financial_engine.py
-# ─────────────────────────────────────────────────────────────
 # Pure deterministic math functions.
 # No API calls, no AI — just formulas.
 # Every number the agent quotes comes from these functions.
-# ─────────────────────────────────────────────────────────────
 
 from knowledge_base import KNOWLEDGE_BASE
 
 
-# ── 1. SIP Calculator ─────────────────────────────────────────
+#1. SIP Calculator
 def calc_sip(target: float, years: int, annual_rate: float = 0.12) -> float:
     """
     Monthly SIP amount needed to reach a target corpus.
@@ -34,7 +31,7 @@ def calc_sip(target: float, years: int, annual_rate: float = 0.12) -> float:
     return round(sip, 2)
 
 
-# ── 2. FIRE Corpus Calculator ──────────────────────────────────
+#2. FIRE Corpus Calculator
 def calc_fire_corpus(monthly_expense: float, inflation: float = None) -> float:
     """
     Target retirement corpus using the 25x rule (4% withdrawal rate).
@@ -57,7 +54,7 @@ def calc_fire_corpus(monthly_expense: float, inflation: float = None) -> float:
     return round(corpus, 2)
 
 
-# ── 3. Future Value of Existing Investments ────────────────────
+#3. Future Value of Existing Investments
 def calc_future_value(principal: float, annual_rate: float, years: int) -> float:
     """
     Compound interest — how much an existing lump sum grows to.
@@ -77,7 +74,7 @@ def calc_future_value(principal: float, annual_rate: float, years: int) -> float
     return round(principal * (1 + annual_rate) ** years, 2)
 
 
-# ── 4. Inflation-Adjusted Goal Amount ─────────────────────────
+#4. Inflation-Adjusted Goal Amount
 def calc_goal_future_cost(
     current_cost: float, years_away: int, inflation: float = 0.06
 ) -> float:
@@ -97,7 +94,7 @@ def calc_goal_future_cost(
     return round(current_cost * (1 + inflation) ** years_away, 2)
 
 
-# ── 5. Emergency Fund Shortfall ────────────────────────────────
+#5. Emergency Fund Shortfall
 def calc_emergency_shortfall(
     monthly_expense: float, liquid_savings: float
 ) -> dict:
@@ -121,7 +118,7 @@ def calc_emergency_shortfall(
     }
 
 
-# ── 6. Insurance Gap Calculator ────────────────────────────────
+#6. Insurance Gap Calculator
 def calc_insurance_gap(
     annual_income: float,
     existing_term_cover: float,
@@ -159,7 +156,7 @@ def calc_insurance_gap(
     }
 
 
-# ── 7. Tax Saving Headroom ─────────────────────────────────────
+#7.Tax Saving Headroom
 def calc_tax_headroom(
     annual_income: float,
     existing_80c: float = 0,
@@ -212,7 +209,7 @@ def calc_tax_headroom(
         }
 
 
-# ── 8. FIRE Date Estimator ─────────────────────────────────────
+#FIRE Date Estimator
 def calc_fire_date(
     current_age: int,
     monthly_income: float,
@@ -263,7 +260,7 @@ def calc_fire_date(
     }
 
 
-# ── 9. Asset Allocation with Market Tilt ──────────────────────
+#Asset Allocation with Market Tilt
 def calc_asset_allocation(
     risk_profile: str, nifty_pe: float = None
 ) -> dict:
@@ -304,7 +301,7 @@ def calc_asset_allocation(
     return base
 
 
-# ── 10. Savings Rate Calculator ────────────────────────────────
+#Savings Rate Calculator
 def calc_savings_rate(monthly_income: float, monthly_expense: float) -> dict:
     """
     Calculates savings rate and gives a qualitative assessment.

@@ -1,14 +1,10 @@
-# knowledge_base.py
-# ─────────────────────────────────────────────────────────────
 # All static Indian financial knowledge encoded as Python dicts.
 # This is the "brain" of the system prompt — compiled from SEBI,
 # AMFI, Income Tax Act, and RBI public sources.
 # Update tax slabs at the start of each financial year (April).
-# ─────────────────────────────────────────────────────────────
 
 KNOWLEDGE_BASE = {
 
-    # ── Tax slabs ──────────────────────────────────────────────
     "tax": {
         "new_regime_fy2025": [
             {"upto": 300000,   "rate": 0.00},
@@ -30,7 +26,7 @@ KNOWLEDGE_BASE = {
         "standard_deduction_new": 75000,  # Updated in Budget 2024
     },
 
-    # ── 80C / 80D / NPS deduction limits ──────────────────────
+    #80C / 80D / NPS deduction limits
     "deductions": {
         "80C_limit": 150000,          # ELSS, PPF, EPF, NSC, LIC, ULIP, home loan principal
         "80D_self_below60": 25000,    # Health insurance premium (self + family)
@@ -42,7 +38,7 @@ KNOWLEDGE_BASE = {
         "hra_exemption_nonmetro_percent": 0.40,
     },
 
-    # ── Investment instruments ─────────────────────────────────
+    #Investment instruments
     "instruments": {
         "ppf": {
             "current_rate": 0.071,    # 7.1% p.a. as of Q1 FY25 — update quarterly
@@ -90,7 +86,7 @@ KNOWLEDGE_BASE = {
         },
     },
 
-    # ── Asset allocation rules by risk profile ─────────────────
+    #Asset allocation rules by risk profile
     "asset_allocation": {
         "conservative": {
             "equity": 0.20, "debt": 0.60, "gold": 0.10, "liquid": 0.10
@@ -106,7 +102,7 @@ KNOWLEDGE_BASE = {
         },
     },
 
-    # ── Nifty P/E valuation zones ──────────────────────────────
+    #Nifty P/E valuation zones
     # Used to tilt equity allocation up or down dynamically
     "market_valuation": {
         "undervalued_pe_below": 18,
@@ -116,7 +112,7 @@ KNOWLEDGE_BASE = {
         "equity_tilt_overvalued": -0.10,    # Cut 10% from equity allocation
     },
 
-    # ── Rules of thumb ─────────────────────────────────────────
+    #Rules of thumb
     "rules_of_thumb": {
         "emergency_fund_months": 6,
         "term_insurance_multiplier": 12,      # 12x annual income
@@ -128,7 +124,7 @@ KNOWLEDGE_BASE = {
         "rule_of_72_divisor": 72,              # Years to double = 72 / rate%
     },
 
-    # ── Inflation assumptions ──────────────────────────────────
+    #Inflation assumptions
     "inflation": {
         "general_cpi": 0.06,
         "education_inflation": 0.10,   # Higher than CPI
@@ -136,15 +132,15 @@ KNOWLEDGE_BASE = {
         "lifestyle_inflation": 0.07,
     },
 
-    # ── Insurance benchmarks ───────────────────────────────────
+    #Insurance benchmarks
     "insurance": {
         "term_premium_estimate_30yr_1cr": 8000,  # ₹8,000/yr approx for ₹1Cr cover
         "health_floater_2_members": 15000,
         "critical_illness_rider": "recommended_above_40",
-        "min_health_cover_metro": 1000000,        # ₹10L in metros
+        "min_health_cover_metro": 1000000,        
     },
 
-    # ── Common Indian life goals with inflation rate ───────────
+    #Common Indian life goals with inflation rate
     "goal_inflation_rates": {
         "child_education": 0.10,
         "child_marriage": 0.08,
