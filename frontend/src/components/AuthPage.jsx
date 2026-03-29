@@ -50,7 +50,7 @@ export default function AuthPage() {
         {/* Brand */}
         <div style={styles.brand}>
           <div style={styles.brandIcon}>₹</div>
-          <h1 style={styles.brandName}>FinMentor</h1>
+          <h1 style={styles.brandName}>FinMate</h1>
           <p style={styles.brandTagline}>Your AI-powered wealth guide for India</p>
         </div>
 
