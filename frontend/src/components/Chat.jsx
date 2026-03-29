@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { sendChat } from "../api";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+//Helpers
 function fmtINR(n) {
   if (n === undefined || n === null || isNaN(n)) return "—";
   const v = Math.abs(parseFloat(n));
@@ -66,7 +66,7 @@ function applyInline(text) {
     .replace(/`([^`]+)`/g, "<code>$1</code>");
 }
 
-// ─── Persona colours ───────────────────────────────────────────────────────────
+//Persona colours
 const PERSONA_COLORS = {
   "FIRE Seeker":          { bg: "#F5A62318", border: "#F5A62344", color: "#F5A623", label: "🔥" },
   "YOLO Traveller":       { bg: "#FF6B9D18", border: "#FF6B9D44", color: "#FF6B9D", label: "✈️" },
@@ -76,7 +76,7 @@ const PERSONA_COLORS = {
   "Balanced Builder":     { bg: "#A78BFA18", border: "#A78BFA44", color: "#A78BFA", label: "⚖️" },
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+//Sub-components
 function MetricCard({ label, value, valueColor, icon, sub }) {
   return (
     <div style={{ background: "#0C1526", border: "1px solid #1A2B45", borderRadius: "10px", padding: "12px 14px" }}>
@@ -119,7 +119,7 @@ function MessageBubble({ msg }) {
   );
 }
 
-// ─── Initial Loading Placeholder ──────────────────────────────────────────────
+//Initial Loading Placeholder
 function GreetingLoader() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "20px", padding: "40px" }}>
@@ -137,12 +137,10 @@ function GreetingLoader() {
   );
 }
 
-// ─── Main Chat Component ───────────────────────────────────────────────────────
+//Main Chat Component
 export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
   // UI messages (what the user sees in the chat)
   const [messages, setMessages]     = useState([]);
-  // ✅ FIX: Separate API history that correctly tracks both sides of every exchange.
-  //         This prevents the "history starts with model" Gemini error.
   const [apiHistory, setApiHistory] = useState([]);
   const [input, setInput]           = useState("");
   const [isLoading, setIsLoading]   = useState(false);
@@ -150,7 +148,6 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
   const [calculations, setCalcs]    = useState(null);
   const [market, setMarket]         = useState(null);
   const [sidebarOpen, setSidebar]   = useState(true);
-  // ✅ FIX: Track if the error is network-level vs quota/content
   const [lastError, setLastError]   = useState(null);
 
   const bottomRef  = useRef(null);
@@ -174,8 +171,6 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
         // Show only the model's reply in the UI
         setMessages([{ role: "model", content: res.reply, time: now }]);
 
-        // ✅ CRITICAL FIX: Store BOTH the user prompt AND the model reply in
-        //    apiHistory so future calls always start with a "user" turn.
         setApiHistory([
           { role: "user",  content: greetingPrompt },
           { role: "model", content: res.reply },
@@ -199,12 +194,12 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
     greet();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-scroll ──
+  //Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // ── Send message ──
+  //Send message
   async function handleSend() {
     const text = input.trim();
     if (!text || isLoading) return;
@@ -219,14 +214,12 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
     setLastError(null);
 
     try {
-      // ✅ FIX: Pass apiHistory (which correctly starts with "user") — not the
       //         UI messages array which starts with a "model" greeting message.
       const res = await sendChat(text, userProfile, quizAnswers, apiHistory, experiencePct);
 
       const botMsg = { role: "model", content: res.reply, time: now() };
       setMessages((prev) => [...prev, botMsg]);
 
-      // ✅ FIX: Append both sides to apiHistory after each exchange.
       setApiHistory((prev) => [
         ...prev,
         { role: "user",  content: text },
@@ -255,11 +248,11 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
 
   if (!element) return;
 
-  // 🟢 Save original styles
+  // Save original styles
   const originalBg = element.style.background;
   const originalColor = element.style.color;
 
-  // 🟢 Force white theme for PDF
+  // Force white theme for PDF
   element.style.background = "#ffffff";
   element.style.color = "#000000";
 
@@ -274,7 +267,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
   doc.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
   doc.save("finmate.pdf");
 
-  // 🔴 Restore original styles (IMPORTANT)
+  // Restore original styles (IMPORTANT)
   element.style.background = originalBg;
   element.style.color = originalColor;
 }
@@ -293,7 +286,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
   const insurance = calculations?.insurance_gap;
   const alloc   = calculations?.asset_allocation;
 
-  // ─── Suggested questions ───
+  //Suggested questions
   const suggestions = [
     "Show me my emergency fund gap",
     "How much SIP do I need for retirement?",
@@ -351,7 +344,7 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
 >
   PDF
 </button>
-                  {/* ✅ ADD THIS LOGOUT BUTTON */}
+                  {/* ADD THIS LOGOUT BUTTON */}
           <button
             onClick={handleLogout}
             style={{
@@ -381,8 +374,6 @@ export default function Chat({ userProfile, quizAnswers, experiencePct = 20 }) {
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
 
-            {/* ✅ FIX: Show a proper loading screen while the initial greeting is loading
-                instead of a blank screen. */}
             {messages.length === 0 && isLoading && <GreetingLoader />}
 
             {/* Persona badge — only show once messages have loaded */}

@@ -1,13 +1,10 @@
-// src/api.js
-// ─────────────────────────────────────────────────────────────
 // All API calls in one place.
 // Every call now automatically attaches the JWT token from
 // localStorage via the authFetch helper.
-// ─────────────────────────────────────────────────────────────
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// ── Authenticated fetch wrapper ───────────────────────────────
+//Authenticated fetch wrapper
 function authFetch(path, options = {}) {
   const token = localStorage.getItem("fm_token");
   return fetch(`${BASE_URL}${path}`, {
@@ -21,7 +18,7 @@ function authFetch(path, options = {}) {
 }
 
 
-// ── Auth ──────────────────────────────────────────────────────
+//Auth
 export async function apiSignup(email, password, name) {
   const res = await fetch(`${BASE_URL}/auth/signup`, {
     method: "POST",
@@ -51,7 +48,7 @@ export async function apiGetMe() {
 }
 
 
-// ── Profile ───────────────────────────────────────────────────
+//Profile
 export async function apiSaveProfile(financialData, quizAnswers, experienceSpendPct = 20) {
   const res = await authFetch("/profile/save", {
     method: "PUT",
@@ -89,7 +86,7 @@ export async function sendChat(
 }
 
 
-// ── Calculations ──────────────────────────────────────────────
+//Calculations
 export async function getCalculations(userProfile) {
   const res = await authFetch("/calculate", {
     method: "POST",

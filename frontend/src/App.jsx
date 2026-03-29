@@ -1,15 +1,9 @@
-// src/App.jsx
-// ─────────────────────────────────────────────────────────────
 // Root component — handles the 3-step routing:
 //
 //   1. Not logged in          → <AuthPage />
 //   2. Logged in, no profile  → <OnboardingForm />
 //   3. Logged in, has profile → <Chat /> (with welcome back banner)
-//
-// AuthProvider wraps everything so auth state is global.
-// ─────────────────────────────────────────────────────────────
 
-// FIX: removed unused `useState` import — all state lives in AuthContext now.
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthPage from "./components/AuthPage";
 import Chat from "./components/Chat";
@@ -19,7 +13,7 @@ import OnboardingForm from "./components/OnboardingForm";
 function AppContent() {
   const { user, profile, quizAnswers, loading, saveProfile, logout } = useAuth();
 
-  // ── Loading state while session is being restored ──────────
+  //Loading state while session is being restored
   if (loading) {
     return (
       <div style={loadingStyles.root}>
@@ -29,12 +23,12 @@ function AppContent() {
     );
   }
 
-  // ── Step 1: Not authenticated ──────────────────────────────
+  //Step 1: Not authenticated
   if (!user) {
     return <AuthPage />;
   }
 
-  // ── Step 2: Authenticated but no financial profile yet ─────
+  //Step 2: Authenticated but no financial profile yet
   if (!user.has_profile) {
     return (
       <OnboardingForm
@@ -46,7 +40,7 @@ function AppContent() {
     );
   }
 
-  // ── Step 3: Fully set up — go to chat ─────────────────────
+  //Step 3: Fully set up — go to chat
   return (
     <Chat
       userProfile={profile}
@@ -65,7 +59,7 @@ export default function App() {
   );
 }
 
-// ── Loading screen styles ──────────────────────────────────────
+//Loading screen styles
 const loadingStyles = {
   root: {
     minHeight: "100vh",
@@ -90,8 +84,6 @@ const loadingStyles = {
     fontFamily: "system-ui, sans-serif",
   },
 };
-
-// Inject the spin keyframe globally (needed for the spinner)
 if (typeof document !== "undefined") {
   const style = document.createElement("style");
   style.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";

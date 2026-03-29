@@ -1,12 +1,9 @@
-// src/components/OnboardingForm.jsx
-// ─────────────────────────────────────────────────────────────
 // Multi-step onboarding.
 // After the user fills everything out, it:
 //   1. POSTs to /profile/save (stores in DB, runs persona detection)
 //   2. Calls onComplete() to move the app to the Chat screen
 //
 // The profile is now permanently saved — next login skips this.
-// ─────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { apiSaveProfile, apiGetMe } from "../api";
@@ -329,7 +326,7 @@ export default function OnboardingForm({ userName, onComplete }) {
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────
+//Helpers
 function canAdvance(step, form, q1, q2, q3) {
   if (step === 0) return form.age && form.city;
   if (step === 1) return form.monthly_income && form.monthly_expenses;
@@ -375,7 +372,7 @@ function SummaryItem({ label, value }) {
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────
+//Styles
 const C = {
   bg: "#0f1117", surface: "#1a1d27", border: "#2a2d3e",
   gold: "#d4a853", goldDim: "#8a6a2a", text: "#e8e4d9",

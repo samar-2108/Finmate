@@ -1,9 +1,4 @@
-// src/components/AuthPage.jsx
-// ─────────────────────────────────────────────────────────────
 // Login + Signup page.
-// Dark fintech aesthetic — deep charcoal bg, warm gold accents.
-// Smooth tab-switch between Sign In and Create Account.
-// ─────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -153,7 +148,7 @@ export default function AuthPage() {
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────
+//Styles 
 const C = {
   bg:       "#0f1117",
   surface:  "#1a1d27",
