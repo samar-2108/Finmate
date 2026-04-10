@@ -362,9 +362,7 @@ async def chat(
     )
 
     # Step 5: Model selection
-    model_name = "gemini-2.5-flash-lite"
-    if len(request.message) > 200:
-        model_name = "gemini-2.5-flash"
+    model_name = "gemini-2.5-flash"
 
     # Step 6: Build contents (saved DB history + request history + new message)
     contents = []
