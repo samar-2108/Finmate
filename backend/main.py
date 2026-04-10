@@ -43,7 +43,7 @@ app = FastAPI(
     version="2.0.0",
 )
 
-_allowed_origins = ["http://localhost:5173", "http://localhost:3000"]
+_allowed_origins = ["http://localhost:5173", "http://localhost:8000"]
 if FRONTEND_URL:
     _allowed_origins.append(FRONTEND_URL)
 
